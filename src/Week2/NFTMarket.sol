@@ -4,11 +4,11 @@ pragma solidity ^0.8.25;
 import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 // import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IERC721Receiver } from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import { BaseERC20 } from "./BaseERC20.sol";
+import { BaseERC20, TokenRecipient, InvalidAddressError } from "./BaseERC20.sol";
 
 error AccessError(address _address);
 
-contract NFTMarket is IERC721Receiver {
+contract NFTMarket is IERC721Receiver, TokenRecipient {
     struct NFT {
         uint256 price;
         address ownerAddress;
@@ -61,6 +61,27 @@ contract NFTMarket is IERC721Receiver {
 
         NFT memory n1 = products[_tokenId];
         n1.ownerAddress = msg.sender;
+
+        products[_tokenId] = n1;
+
+        return true;
+    }
+
+    function tokenReceive(address _address, uint256 value, bytes memory extraData) public returns (bool) {
+        if (tokenAddress != msg.sender) {
+            revert InvalidAddressError(_address);
+        }
+
+        // bytes storage temp = extraData;
+        uint256 _tokenId = abi.decode(extraData, (uint256));
+        NFT memory n1 = products[_tokenId];
+        n1.ownerAddress = msg.sender;
+
+        uint256 price = n1.price;
+
+        if (value < price) {
+            revert AccessError(_address);
+        }
 
         products[_tokenId] = n1;
 

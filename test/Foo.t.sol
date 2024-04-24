@@ -53,4 +53,24 @@ contract FooTest is Test {
         uint256 expectedBalance = 196_307_713.810457e6;
         assertEq(actualBalance, expectedBalance);
     }
+
+    function testFork() public {
+        string memory alchemyApiKey = vm.envOr("API_KEY_ALCHEMY", string(""));
+        console2.log(alchemyApiKey);
+        if (bytes(alchemyApiKey).length == 0) {
+            return;
+        }
+        uint256 deployPrivateKey = vm.envUint("PRIVATE_KEY");
+        console2.log(deployPrivateKey);
+        // vm.createSelectFork({ urlOrAlias: "sepolia" });
+        vm.createSelectFork("https://sepolia.gateway.tenderly.co");
+        address helloContract = 0x36e25E1d589021d8cd7411DcD5B179279bC61D33;
+        address walletEOA = 0x251757EFDd8818283ec73A428e5486FB319bFc84;
+        vm.prank(walletEOA);
+        (bool success, bytes memory data) = helloContract.call(abi.encodeWithSignature("print()(string)"));
+        console2.log(success);
+        string memory returnValue = abi.decode(data, (string));
+
+        console2.log(returnValue);
+    }
 }

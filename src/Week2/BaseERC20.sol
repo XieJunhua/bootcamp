@@ -38,7 +38,7 @@ contract BaseERC20 {
     }
 
     function transfer(address _to, uint256 _value) public returns (bool success) {
-        if (balances[msg.sender] >= _value) {
+        if (balances[msg.sender] < _value) {
             revert AmountExceedError(msg.sender);
         }
         balances[msg.sender] = balances[msg.sender] - _value;
@@ -58,13 +58,13 @@ contract BaseERC20 {
     }
 
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) {
-        if (allowances[_from][msg.sender] >= _value) {
+        if (allowances[_from][msg.sender] < _value) {
             revert AllowancedExceedError(msg.sender);
         }
 
         allowances[_from][msg.sender] = allowances[_from][msg.sender] - _value;
 
-        if (balances[_from] >= _value) {
+        if (balances[_from] < _value) {
             revert AmountExceedError(_from);
         }
 
@@ -93,6 +93,8 @@ contract TokenBank is TokenRecipient {
     event Log(string);
     event Print(string, address);
 
+    event LogExtraData(address _from, bytes _data);
+
     constructor(address _tokenAddress) {
         tokenAddress = _tokenAddress;
     }
@@ -106,23 +108,13 @@ contract TokenBank is TokenRecipient {
         }
     }
 
-    // function depositNew(uint256 value) public returns (bool) {
-    //     bool result = BaseERC20(tokenAddress).transferWithFallback(address(this), value);
-
-    //     if (result) {
-    //         accounts[msg.sender] = accounts[msg.sender] + value;
-    //         emit Log("save token success");
-    //     }
-    //     return result;
-    // }
-
     function getAccounts() public view returns (uint256) {
         return accounts[msg.sender];
     }
 
     function withdraw(uint256 value) public {
         // require(value <= accounts[msg.sender], "you don't have enough money");
-        if (value <= accounts[msg.sender]) {
+        if (value < accounts[msg.sender]) {
             revert AmountExceedError(msg.sender);
         }
 
@@ -139,6 +131,7 @@ contract TokenBank is TokenRecipient {
             revert InvalidAddressError(_address);
         }
         accounts[_address] = accounts[_address] + value;
+        emit LogExtraData(_address, extraData);
         return true;
     }
 }

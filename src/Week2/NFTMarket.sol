@@ -30,13 +30,6 @@ contract NFTMarket is IERC721Receiver, TokenRecipient {
         if (!owner) {
             revert AccessError(nftAddress);
         }
-        // require(owner, "you are not owner");
-
-        // NFT memory n;
-        // n.price = price;
-        // n.ownerAddress = msg.sender;
-
-        // products[_tokenId] = n;
         products[_tokenId] = NFT({ price: price, ownerAddress: msg.sender });
 
         return true;
@@ -50,12 +43,8 @@ contract NFTMarket is IERC721Receiver, TokenRecipient {
     function buyNFT(uint256 _tokenId) public returns (bool) {
         NFT memory n = products[_tokenId];
         uint256 price = n.price;
-        // uint256 balace = BaseERC20(tokenAddress).balanceOf(msg.sender);
-
-        // require(balace >= price, "you don't have enough money");
 
         BaseERC20(tokenAddress).transferFrom(msg.sender, n.ownerAddress, price);
-        // require(transferSuccess, "transfer from BaseERC20 failure");
 
         IERC721(nftAddress).safeTransferFrom(n.ownerAddress, msg.sender, _tokenId);
 
@@ -71,19 +60,13 @@ contract NFTMarket is IERC721Receiver, TokenRecipient {
         if (tokenAddress != msg.sender) {
             revert InvalidAddressError(_address);
         }
-
-        // bytes storage temp = extraData;
         uint256 _tokenId = abi.decode(extraData, (uint256));
         NFT memory n1 = products[_tokenId];
-        n1.ownerAddress = msg.sender;
-
-        uint256 price = n1.price;
-
-        if (value < price) {
+        BaseERC20(tokenAddress).transfer(n1.ownerAddress, n1.price);
+        if (value < n1.price) {
             revert AccessError(_address);
         }
-
-        products[_tokenId] = n1;
+        delete products[_tokenId];
 
         return true;
     }

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.25;
 
 import { Test, console2 } from "forge-std/src/Test.sol";
-import { NFTMarket, BaseERC20 } from "../src/Week2/NFTMarket.sol";
+import { NFTMarket, BaseERC20, TokenAccessError, ListNFT } from "../src/Week2/NFTMarket.sol";
 import { MyERC721 } from "../src/Week2/MyERC721.sol";
 
 contract NFTMarketTest is Test {
@@ -52,6 +52,21 @@ contract NFTMarketTest is Test {
         assertEq(my20.balanceOf(bob), 100);
         assertEq(nftMarket.checkList(0).ownerAddress, alice);
         vm.stopPrank();
+    }
+
+    function test_expectError() public {
+        // vm.expectRevert(bytes32(keccak256("AccessError(address)")));
+        vm.startPrank(address(alice));
+        vm.expectRevert(abi.encodeWithSelector(TokenAccessError.selector, alice, 0));
+
+        nftMarket.list(0, 200);
+        vm.stopPrank();
+    }
+
+    function test_expectEvent() public {
+        vm.expectEmit(true, true, true, true);
+        emit ListNFT(address(my721), 0, bob, 100);
+        list(bob, 0, 100);
     }
 
     function list(address who, uint256 _tokenId, uint256 price) public {

@@ -4,9 +4,11 @@ pragma solidity ^0.8.25;
 import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 // import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IERC721Receiver } from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import { BaseERC20, TokenRecipient, InvalidAddressError } from "./BaseERC20.sol";
+import { BaseERC20, TokenRecipient, InvalidAddressError, AmountExceedError } from "./BaseERC20.sol";
 
-error AccessError(address _address);
+error TokenAccessError(address, uint256);
+
+event ListNFT(address nftAddress, uint256 tokenId, address ownerAddress, uint256 price);
 
 contract NFTMarket is IERC721Receiver, TokenRecipient {
     struct NFT {
@@ -28,9 +30,10 @@ contract NFTMarket is IERC721Receiver, TokenRecipient {
     function list(uint256 _tokenId, uint256 price) public returns (bool) {
         bool owner = IERC721(nftAddress).ownerOf(_tokenId) == msg.sender;
         if (!owner) {
-            revert AccessError(nftAddress);
+            revert TokenAccessError(msg.sender, _tokenId);
         }
         products[_tokenId] = NFT({ price: price, ownerAddress: msg.sender });
+        emit ListNFT(nftAddress, _tokenId, msg.sender, price);
 
         return true;
     }
@@ -64,7 +67,7 @@ contract NFTMarket is IERC721Receiver, TokenRecipient {
         NFT memory n1 = products[_tokenId];
         BaseERC20(tokenAddress).transfer(n1.ownerAddress, n1.price);
         if (value < n1.price) {
-            revert AccessError(_address);
+            revert AmountExceedError(_address);
         }
         delete products[_tokenId];
 

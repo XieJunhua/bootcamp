@@ -5,6 +5,9 @@ import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 // import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IERC721Receiver } from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import { BaseERC20, TokenRecipient, InvalidAddressError, AmountExceedError } from "./BaseERC20.sol";
+import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import { MyERC2612 } from "../Week3/MyERC2612.sol";
 
 error TokenAccessError(address, uint256);
 
@@ -21,6 +24,8 @@ contract NFTMarket is IERC721Receiver, TokenRecipient {
     address private tokenAddress;
 
     event Log(address, address, uint256, bytes);
+
+    address signer = 0x328809Bc894f92807417D2dAD6b7C998c1aFdac6;
 
     constructor(address _nftAddress, address _tokenAddress) {
         nftAddress = _nftAddress;
@@ -48,6 +53,43 @@ contract NFTMarket is IERC721Receiver, TokenRecipient {
         uint256 price = n.price;
 
         BaseERC20(tokenAddress).transferFrom(msg.sender, n.ownerAddress, price);
+
+        IERC721(nftAddress).safeTransferFrom(n.ownerAddress, msg.sender, _tokenId);
+
+        NFT memory n1 = products[_tokenId];
+        n1.ownerAddress = msg.sender;
+
+        products[_tokenId] = n1;
+
+        return true;
+    }
+
+    function permitBuy(
+        bytes memory _signature,
+        uint256 _tokenId,
+        uint256 value,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    )
+        public
+        returns (bool)
+    {
+        address _address = msg.sender;
+        bytes32 hash = MessageHashUtils.toEthSignedMessageHash(keccak256(abi.encodePacked(_address)));
+
+        address recover = ECDSA.recover(hash, _signature);
+        if (recover != signer) {
+            revert InvalidAddressError(_address);
+        }
+
+        NFT memory n = products[_tokenId];
+        uint256 price = n.price;
+
+        MyERC2612(tokenAddress).permit(msg.sender, address(this), value, deadline, v, r, s);
+
+        MyERC2612(tokenAddress).transferFrom(msg.sender, n.ownerAddress, price);
 
         IERC721(nftAddress).safeTransferFrom(n.ownerAddress, msg.sender, _tokenId);
 

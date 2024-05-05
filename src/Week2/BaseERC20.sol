@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
+import { MyERC2612 } from "../Week3/MyERC2612.sol";
+
+event Transfer(address indexed from, address indexed to, uint256 value);
+
 interface TokenRecipient {
     function tokenReceive(address _address, uint256 value, bytes memory extraData) external returns (bool);
 }
@@ -21,7 +25,6 @@ contract BaseERC20 {
 
     mapping(address _address => mapping(address approveAddress => uint256 amount)) internal allowances;
 
-    event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
     constructor(address _address) {
@@ -106,6 +109,13 @@ contract TokenBank is TokenRecipient {
             accounts[msg.sender] = accounts[msg.sender] + value;
             emit Log("save token success");
         }
+    }
+
+    function permitDeposit(uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) public {
+        MyERC2612(tokenAddress).permit(msg.sender, address(this), value, deadline, v, r, s);
+        MyERC2612(tokenAddress).transferFrom(msg.sender, address(this), value);
+        accounts[msg.sender] = accounts[msg.sender] + value;
+        emit Transfer(msg.sender, address(this), value);
     }
 
     function getAccounts() public view returns (uint256) {

@@ -7,6 +7,8 @@ import { Test, console2 } from "forge-std/src/Test.sol";
 // import { TokenBank, BaseERC20 } from "../src/Week2/BaseERC20.sol";
 import { MyERC20 } from "../src/Week3/MyERC20.sol";
 import { ERC20Factory } from "../src/Week3/ERC20Factory.sol";
+import { IERC20Errors } from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
+// import "filename";
 
 // import { SigUtils } from "./SigUtils.sol";
 // import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
@@ -36,34 +38,55 @@ contract ERC20FactoryTest is Test {
     }
 
     function test_deployInscription() public {
+        // token "hh"
         vm.prank(alice);
-
         address tokenAddress = erc20Factory.deployInscription("hh", 1e18, 1e5, 1e5);
         assertEq(MyERC20(tokenAddress).balanceOf(address(erc20Factory)), 1e18);
-        uint256 balanceAliceBeforeMint = alice.balance;
-        uint256 balanceFactoryBeforeMint = address(erc20Factory).balance;
+        mintFromFactory(bob, tokenAddress, alice, 1e5, 1e5);
 
-        vm.deal(bob, 1 ether);
-        vm.prank(bob);
-        // bob mint once, want to get 1e5 token
-        erc20Factory.mintInscription{ value: 1e5 }(tokenAddress);
-
-        assertEq(MyERC20(tokenAddress).balanceOf(address(bob)), 1e5);
-        assertEq(alice.balance, balanceAliceBeforeMint + 1e5 / 2); // token manager alice get 1e5 wei
-        assertEq(address(erc20Factory).balance, balanceFactoryBeforeMint + 1e5 / 2); // factory get 1e5 wei
-
+        // token "gg"
         vm.prank(address1);
         address anotherTokenAddress = erc20Factory.deployInscription("gg", 1e18, 1e6, 1e6);
         assertEq(MyERC20(anotherTokenAddress).balanceOf(address(erc20Factory)), 1e18);
+        mintFromFactory(address2, anotherTokenAddress, address1, 1e6, 1e6);
+    }
 
-        balanceFactoryBeforeMint = address(erc20Factory).balance;
-        vm.deal(address2, 1 ether);
-        vm.prank(address2);
-        erc20Factory.mintInscription{ value: 1e6 }(anotherTokenAddress);
-        assertEq(MyERC20(anotherTokenAddress).balanceOf(address(address2)), 1e6);
+    function testrevertOverSupply() public {
+        vm.prank(alice);
+        address tokenAddress = erc20Factory.deployInscription("hh", 1e5, 1e5, 1e5);
+        assertEq(MyERC20(tokenAddress).balanceOf(address(erc20Factory)), 1e5);
+        mintFromFactory(bob, tokenAddress, alice, 1e5, 1e5);
 
-        assertEq(address1.balance, 1e6 / 2); // token manager alice get 1e5 wei
-        assertEq(address(erc20Factory).balance, balanceFactoryBeforeMint + 1e6 / 2); // factory get 1e5 wei
+        vm.expectRevert(
+            abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, address(erc20Factory), 0, 1e5)
+        );
+
+        vm.deal(address1, 1 ether);
+        vm.prank(address1);
+        // mint over the supply will revert ERC20InsufficientBalance
+        erc20Factory.mintInscription{ value: 1e5 }(tokenAddress);
+    }
+
+    function mintFromFactory(
+        address _who,
+        address tokenAddress,
+        address tokenManager,
+        uint256 price,
+        uint256 perMint
+    )
+        public
+    {
+        uint256 balanceAliceBeforeMint = _who.balance;
+        uint256 balanceFactoryBeforeMint = address(erc20Factory).balance;
+        vm.deal(_who, 1 ether);
+        vm.prank(_who);
+        // _who mint once, want to get {price} token
+        erc20Factory.mintInscription{ value: price }(tokenAddress);
+
+        assertEq(MyERC20(tokenAddress).balanceOf(address(_who)), perMint);
+        assertEq(tokenManager.balance, balanceAliceBeforeMint + price / 2); // token manager alice get price / 2 wei
+        assertEq(address(erc20Factory).balance, balanceFactoryBeforeMint + price / 2); // factory get price / 2 wei as
+            // fee
     }
 
     function createClone(address target) internal returns (address result) {

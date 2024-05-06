@@ -121,4 +121,6 @@ Sensitive values saved to: /Users/xiejunhua/web3/bootcamp/cache/NFTMarketDeploy.
 ```
 
 2. you can get the proxy address from the log and set it to the .env file
-   
+3. depoly upgrated contract
+
+![p1](image.png)

@@ -30,7 +30,7 @@ contract NFTMarketV2Deploy is UpgradeableDeploy {
         proxyAddress = vm.envAddress("PROXY");
     }
 
-    function _run() internal override create {
+    function _run() internal override upgrade {
         NFTMarketV2 c = new NFTMarketV2();
         implementation = address(c);
         data = bytes.concat(c.upgrade.selector);

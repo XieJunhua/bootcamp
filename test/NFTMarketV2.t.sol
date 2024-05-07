@@ -56,7 +56,7 @@ contract NFTMarketV2Test is Test {
         // console.log(v);
 
         // console2.log(v);
-        console2.log(abi.encodePacked(r, s, v));
+        // console2.log(abi.encodePacked(r, s, v));
         // console2.log(string(abi.encodePacked(s)));
         // nftMarket.listWithSignature(tokenId, price, v, r, s);
 

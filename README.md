@@ -124,3 +124,19 @@ Sensitive values saved to: /Users/xiejunhua/web3/bootcamp/cache/NFTMarketDeploy.
 3. depoly upgrated contract
 
 ![p1](image.png)
+
+4. deploy to sepolia
+   
+ - proxy:0x138E41ceb58bb23C124Facc1eF9dB71cC8cc8F70
+ - MyERC721:0xa90eF7bc75bf21f29386f38c8A29F2c11FDAa17b
+ - BaseERC20:0xaA5Ea831dFb51Ae85489b58B6747a794e6F2cF3d
+ - NFTMarketV1:0xdd7F8Fa854e1A23c84d80EcB8607788cf0A9905d
+ - NFTMarketV2:0x797885BC3Ceb4241B77d7FEB40Abcc2c99885963
+before upgrade:
+![p2](image-2.png)
+![p3](image-1.png)
+
+
+
+
+cast call 0xa90eF7bc75bf21f29386f38c8A29F2c11FDAa17b "mint(address,string)" 0x251757EFDd8818283ec73A428e5486FB319bFc84 https://ipfs.io/ipfs/QmY5WwRyZm7P6cT9y4uNcHr5eVJvXsQkLX9VZgVn5h7uZ --private-key ${PRIVATE_KEY}

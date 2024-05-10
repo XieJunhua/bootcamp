@@ -12,9 +12,9 @@ contract NFTMarketDeploy is BaseScript {
         uint256 deployPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployPrivateKey);
         BaseERC20 token = new BaseERC20(vm.envAddress("ETH_FROM"));
-        MyERC721 myNFT = new MyERC721();
+        // MyERC721 myNFT = new MyERC721();
 
-        NFTMarket nft = new NFTMarket(address(myNFT), address(token));
+        // NFTMarket nft = new NFTMarket(address(myNFT), address(token));
 
         vm.stopBroadcast();
     }

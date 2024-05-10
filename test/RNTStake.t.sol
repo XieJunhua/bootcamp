@@ -50,6 +50,19 @@ contract RNTStakeTest is Test {
         assertEq(rewardAmount, 50_000);
     }
 
+    function testBurn() public {
+        deposit(alice, 10_000);
+        vm.warp(block.timestamp + 5 days);
+        vm.startPrank(alice);
+        rntStake.withdrawReward(5000);
+
+        rntStake.burn(2000, 3000);
+
+        assertEq(3000, esRNT.balanceOf(alice));
+        assertEq(3000, rnt.balanceOf(alice));
+        vm.stopPrank();
+    }
+
     function deposit(address who, uint256 amount) private {
         rnt.mint(who, amount);
         // vm.prank(who);

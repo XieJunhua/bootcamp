@@ -146,4 +146,4 @@ cast call 0xa90eF7bc75bf21f29386f38c8A29F2c11FDAa17b "mint(address,string)" 0x25
 ![RNTIDO](image-3.png)
 
 ### RNTStake test 
-![RNTStake](image-4.png)
+![RNTStake](image-5.png)

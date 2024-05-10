@@ -74,4 +74,13 @@ contract RNTStake {
         esRNT.mint(msg.sender, amount);
         emit WithdrawReward(msg.sender, block.timestamp, amount);
     }
+
+    /**
+     * burn esRNT and get RNT
+     */
+    function burn(uint256 burnAmount, uint256 exchangeAmount) external {
+        require(esRNT.balanceOf(msg.sender) >= burnAmount, "you don't have enough esRNT");
+        esRNT.burn(msg.sender, burnAmount);
+        rnt.transfer(msg.sender, exchangeAmount);
+    }
 }

@@ -140,3 +140,7 @@ before upgrade:
 
 
 cast call 0xa90eF7bc75bf21f29386f38c8A29F2c11FDAa17b "mint(address,string)" 0x251757EFDd8818283ec73A428e5486FB319bFc84 https://ipfs.io/ipfs/QmY5WwRyZm7P6cT9y4uNcHr5eVJvXsQkLX9VZgVn5h7uZ --private-key ${PRIVATE_KEY}
+
+
+### RNTIDO test
+![RNTIDO](image-3.png)

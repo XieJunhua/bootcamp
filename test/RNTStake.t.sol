@@ -24,18 +24,18 @@ contract RNTStakeTest is Test {
         deposit(alice, 1e4);
     }
 
-    function testWithdrawReward() public {
+    function testclaim() public {
         deposit(alice, 10_000);
         vm.warp(block.timestamp + 5 days);
         vm.prank(alice);
-        rntStake.withdrawReward(5000);
+        rntStake.claim();
 
-        assertEq(5000, esRNT.balanceOf(alice));
+        assertEq(50_000, esRNT.balanceOf(alice));
         (uint256 lastRewardTime, uint256 depositAmount, uint256 rewardAmount) = rntStake.deposits(alice);
 
         assertEq(lastRewardTime, block.timestamp);
         assertEq(depositAmount, 10_000);
-        assertEq(rewardAmount, 45_000);
+        assertEq(rewardAmount, 0);
     }
 
     function testWithdraw() public {
@@ -52,14 +52,21 @@ contract RNTStakeTest is Test {
 
     function testBurn() public {
         deposit(alice, 10_000);
-        vm.warp(block.timestamp + 5 days);
+        vm.warp(block.timestamp + 15 days);
         vm.startPrank(alice);
-        rntStake.withdrawReward(5000);
+        rntStake.claim();
 
-        rntStake.burn(2000, 3000);
+        // vm.warp(block.timestamp + 15 days);
+        // rntStake.burn();
 
-        assertEq(3000, esRNT.balanceOf(alice));
-        assertEq(3000, rnt.balanceOf(alice));
+        // assertEq(75_000, esRNT.balanceOf(alice));
+        // assertEq(75_000, rnt.balanceOf(alice));
+
+        vm.warp(block.timestamp + 315 days);
+        rntStake.burn();
+
+        assertEq(0, esRNT.balanceOf(alice));
+        assertEq(150_000, rnt.balanceOf(alice));
         vm.stopPrank();
     }
 

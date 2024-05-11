@@ -8,7 +8,7 @@ event Deposit(address, uint256);
 
 event Withdraw(address, uint256);
 
-event WithdrawReward(address, uint256, uint256);
+event Claim(address, uint256, uint256);
 
 contract RNTStake {
     RNT immutable rnt;
@@ -20,7 +20,13 @@ contract RNTStake {
         uint256 rewardAmount;
     }
 
+    struct Reward {
+        uint256 lockAt;
+        uint256 rewardAmount;
+    }
+
     mapping(address => Staking) public deposits;
+    mapping(address => Reward[]) public rewards;
 
     constructor(address RNT_address, address esRNT_address) {
         rnt = RNT(RNT_address);
@@ -63,24 +69,48 @@ contract RNTStake {
     }
 
     /**
-     * whithdraw reward esRNT
+     * claim reward esRNT
      */
-    function withdrawReward(uint256 amount) external refreshReward {
+    function claim() external refreshReward {
         uint256 rewardAmount = deposits[msg.sender].rewardAmount;
-        require(rewardAmount >= amount, "you don't have enough money");
-        deposits[msg.sender].rewardAmount = rewardAmount - amount;
+        // require(rewardAmount >= amount, "you don't have enough money");
+        deposits[msg.sender].rewardAmount = 0;
         deposits[msg.sender].lastRewardTime = block.timestamp;
 
-        esRNT.mint(msg.sender, amount);
-        emit WithdrawReward(msg.sender, block.timestamp, amount);
+        Reward[] storage rs = rewards[msg.sender];
+        rs.push(Reward({ lockAt: block.timestamp, rewardAmount: rewardAmount }));
+        rewards[msg.sender] = rs;
+
+        esRNT.mint(msg.sender, rewardAmount);
+        emit Claim(msg.sender, block.timestamp, rewardAmount);
     }
 
     /**
-     * burn esRNT and get RNT
+     * burn your esRNT and get RNT
      */
-    function burn(uint256 burnAmount, uint256 exchangeAmount) external {
+    function burn() external {
+        Reward[] memory rs = rewards[msg.sender];
+        uint256 currentTime = block.timestamp;
+        uint256 burnAmount;
+        uint256 exchangeAmount;
+
+        for (uint256 i = 0; i < rs.length; i++) {
+            uint256 lockedDays = (currentTime - rs[i].lockAt) / (3600 * 24);
+            if (lockedDays >= 30) {
+                exchangeAmount += rs[i].rewardAmount;
+                burnAmount += rs[i].rewardAmount;
+            } else {
+                exchangeAmount += rs[i].rewardAmount * lockedDays / 30;
+                burnAmount += rs[i].rewardAmount * (30 - lockedDays) / 30;
+            }
+        }
+        delete rewards[msg.sender];
+        _burn(burnAmount, exchangeAmount);
+    }
+
+    function _burn(uint256 burnAmount, uint256 exchangeAmount) private {
         require(esRNT.balanceOf(msg.sender) >= burnAmount, "you don't have enough esRNT");
         esRNT.burn(msg.sender, burnAmount);
-        rnt.transfer(msg.sender, exchangeAmount);
+        rnt.mint(msg.sender, exchangeAmount);
     }
 }

@@ -40,7 +40,12 @@ contract RNTStake {
     function deposit(uint256 amount) external refreshReward {
         require(rnt.balanceOf(msg.sender) >= amount);
         rnt.transferFrom(msg.sender, address(this), amount);
-        deposits[msg.sender] = Staking({ lastRewardTime: block.timestamp, depositAmount: amount, rewardAmount: 0 });
+
+        deposits[msg.sender] = Staking({
+            lastRewardTime: block.timestamp,
+            depositAmount: deposits[msg.sender].depositAmount + amount,
+            rewardAmount: deposits[msg.sender].rewardAmount
+        });
         emit Deposit(msg.sender, amount);
     }
 

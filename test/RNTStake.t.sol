@@ -22,6 +22,14 @@ contract RNTStakeTest is Test {
 
     function testDeposit() public {
         deposit(alice, 1e4);
+        vm.warp(block.timestamp + 5 days);
+        deposit(alice, 1e4);
+
+        (uint256 lastRewardTime, uint256 depositAmount, uint256 rewardAmount) = rntStake.deposits(alice);
+
+        assertEq(depositAmount, 2e4);
+        assertEq(lastRewardTime, block.timestamp);
+        assertEq(rewardAmount, 5 * 1e4);
     }
 
     function testclaim() public {
@@ -77,10 +85,10 @@ contract RNTStakeTest is Test {
         rnt.approve(address(rntStake), amount);
         rntStake.deposit(amount);
         // Staking  s = ;
-        (uint256 lastRewardTime, uint256 depositAmount, uint256 rewardAmount) = rntStake.deposits(who);
-        assertEq(depositAmount, amount);
-        assertEq(lastRewardTime, block.timestamp);
-        assertEq(rewardAmount, 0);
+        // (uint256 lastRewardTime, uint256 depositAmount, uint256 rewardAmount) = rntStake.deposits(who);
+        // assertEq(depositAmount, amount);
+        // assertEq(lastRewardTime, block.timestamp);
+        // assertEq(rewardAmount, 0);
         vm.stopPrank();
     }
 }

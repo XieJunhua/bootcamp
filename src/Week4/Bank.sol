@@ -18,15 +18,17 @@ contract Bank {
         } else {
             Node memory n = nodes[head];
 
-            if (n.value < msg.value) {
-                nodes[msg.sender] = Node(head, msg.value, msg.sender);
+            uint256 amountValue = nodes[msg.sender].value + msg.value;
+
+            if (n.value < amountValue) {
+                nodes[msg.sender] = Node(head, amountValue, msg.sender);
                 head = msg.sender;
                 return;
             }
 
             while (n.next != address(0)) {
-                if (msg.value > nodes[n.next].value) {
-                    nodes[msg.sender] = Node(n.next, msg.value, msg.sender);
+                if (amountValue > nodes[n.next].value) {
+                    nodes[msg.sender] = Node(n.next, amountValue, msg.sender);
                     nodes[n.depositer].next = msg.sender;
                     return;
                 }
@@ -34,7 +36,7 @@ contract Bank {
             }
 
             if (n.next == address(0)) {
-                nodes[msg.sender] = Node(address(0), msg.value, msg.sender);
+                nodes[msg.sender] = Node(address(0), amountValue, msg.sender);
                 nodes[n.depositer].next = msg.sender;
                 return;
             }

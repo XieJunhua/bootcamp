@@ -42,7 +42,8 @@ contract BankTest is Test {
         _deposit(kate, 111);
         // _deposit(linda, 12);
         // _deposit(minnie, 13);
-        _deposit(nancy, 14);
+        _deposit(nancy, 13);
+        _deposit(dave, 10);
 
         bank.nodes(bank.head());
         // assertEq(deposit, charlie);
@@ -52,7 +53,7 @@ contract BankTest is Test {
 
         (address next1, uint256 value1, address deposit1) = bank.nodes(jessie);
         // assertEq(deposit, 15);
-        assertEq(next1, nancy);
+        assertEq(next1, dave);
         assertEq(value1, 15);
     }
 

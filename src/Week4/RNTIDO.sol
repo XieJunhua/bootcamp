@@ -50,9 +50,8 @@ contract RNTIDO {
         uint256 share = totalSold / TOTAL_SUPPLY; //计算出每个人的收益
         uint256 amount = share * RNT_balances[msg.sender]; //计算出每个人要领取的RNT
         require(amount > 0, "RNTIDO: no RNT to claim");
-
-        IERC20(tokenAddress).transferFrom(tokenHolderAddress, msg.sender, amount);
         RNT_balances[msg.sender] = 0;
+        IERC20(tokenAddress).transferFrom(tokenHolderAddress, msg.sender, amount);
     }
 
     function withdraw() external {

@@ -40,12 +40,8 @@ contract RNTStake {
     function deposit(uint256 amount) external refreshReward {
         require(rnt.balanceOf(msg.sender) >= amount);
         rnt.transferFrom(msg.sender, address(this), amount);
+        deposits[msg.sender].depositAmount = deposits[msg.sender].depositAmount + amount;
 
-        deposits[msg.sender] = Staking({
-            lastRewardTime: block.timestamp,
-            depositAmount: deposits[msg.sender].depositAmount + amount,
-            rewardAmount: deposits[msg.sender].rewardAmount
-        });
         emit Deposit(msg.sender, amount);
     }
 
@@ -61,6 +57,9 @@ contract RNTStake {
         emit Withdraw(msg.sender, amount);
     }
 
+    /**
+     * refresh reward and set lastRewardTime
+     */
     modifier refreshReward() {
         uint256 currentTime = block.timestamp;
         uint256 lastTime = deposits[msg.sender].lastRewardTime;
